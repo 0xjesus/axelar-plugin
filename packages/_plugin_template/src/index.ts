@@ -22,7 +22,7 @@ export default createPlugin({
   }),
 
   secrets: z.object({
-    apiKey: z.string().min(1, "API key is required"),
+    apiKey: z.string().default(""), // Axelar API is public, no key required
   }),
 
   contract,

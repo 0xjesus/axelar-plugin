@@ -8,6 +8,9 @@
   "peerDependencies": {
     "typescript": "^5.0.0"
   },
+  "dependencies": {
+    "@axelar-network/axelarjs-sdk": "^0.17.0"
+  },
   "devDependencies": {
     "@effect/language-service": "^0.41.1",
     "@module-federation/node": "^2.7.17",

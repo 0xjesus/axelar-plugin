@@ -33,11 +33,11 @@ const TEST_PLUGIN_MAP = {
 
 const TEST_CONFIG = {
   variables: {
-    baseUrl: "https://api.example.com",
-    timeout: 5000,
+    baseUrl: "https://api.axelarscan.io/api/v1",
+    timeout: 30000,
   },
   secrets: {
-    apiKey: "test-api-key",
+    apiKey: "", // No API key needed for Axelar
   },
 };
 
@@ -81,7 +81,7 @@ describe("Data Provider Plugin Integration Tests", () => {
       expect(result.liquidity.length).toBeGreaterThan(0);
       expect(Array.isArray(result.listedAssets.assets)).toBe(true);
       expect(result.listedAssets.assets.length).toBeGreaterThan(0);
-    });
+    }, 60000);
 
     it("should return volumes for requested time windows", async () => {
       const { client } = await runtime.usePlugin("@every-plugin/template", TEST_CONFIG);
@@ -97,7 +97,7 @@ describe("Data Provider Plugin Integration Tests", () => {
       expect(result.volumes.map(v => v.window)).toContain("7d");
       expect(result.volumes[0].volumeUsd).toBeTypeOf("number");
       expect(result.volumes[0].measuredAt).toBeTypeOf("string");
-    });
+    }, 60000);
 
     it("should generate rates for all route/notional combinations", async () => {
       const { client } = await runtime.usePlugin("@every-plugin/template", TEST_CONFIG);
@@ -121,7 +121,7 @@ describe("Data Provider Plugin Integration Tests", () => {
       expect(rate.effectiveRate).toBeGreaterThan(0);
       expect(rate.totalFeesUsd).toBeTypeOf("number");
       expect(rate.quotedAt).toBeTypeOf("string");
-    });
+    }, 60000);
 
     it("should provide liquidity at required thresholds", async () => {
       const { client } = await runtime.usePlugin("@every-plugin/template", TEST_CONFIG);
@@ -148,7 +148,7 @@ describe("Data Provider Plugin Integration Tests", () => {
         expect(threshold.maxAmountIn).toBeTypeOf("string");
         expect(threshold.slippageBps).toBeTypeOf("number");
       });
-    });
+    }, 60000);
 
     it("should return list of supported assets", async () => {
       const { client } = await runtime.usePlugin("@every-plugin/template", TEST_CONFIG);
@@ -170,7 +170,7 @@ describe("Data Provider Plugin Integration Tests", () => {
       });
 
       expect(result.listedAssets.measuredAt).toBeTypeOf("string");
-    });
+    }, 60000);
 
     it("should handle multiple routes correctly", async () => {
       const { client } = await runtime.usePlugin("@every-plugin/template", TEST_CONFIG);
@@ -199,7 +199,7 @@ describe("Data Provider Plugin Integration Tests", () => {
       // Should have liquidity data for both routes
       expect(result.liquidity).toHaveLength(2);
       expect(result.rates).toHaveLength(2); // 2 routes × 1 notional
-    });
+    }, 60000);
 
     it("should require routes and notionals", async () => {
       const { client } = await runtime.usePlugin("@every-plugin/template", TEST_CONFIG);
@@ -219,7 +219,7 @@ describe("Data Provider Plugin Integration Tests", () => {
           notionals: []
         })
       ).rejects.toThrow();
-    });
+    }, 60000);
   });
 
   describe("ping procedure", () => {

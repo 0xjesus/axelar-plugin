@@ -19,10 +19,11 @@ const mockRoute = {
 };
 
 describe("DataProviderService", () => {
+  // Use real Axelar API endpoint for testing
   const service = new DataProviderService(
-    "https://api.example.com",
-    "test-api-key",
-    5000
+    "https://api.axelarscan.io/api/v1",
+    "", // No API key needed for Axelar
+    30000 // Longer timeout for real API calls
   );
 
   describe("getSnapshot", () => {
@@ -124,7 +125,8 @@ describe("DataProviderService", () => {
         })
       );
 
-      expect(result.listedAssets.assets).toHaveLength(3);
+      // Should have assets from real Axelar API
+      expect(result.listedAssets.assets.length).toBeGreaterThan(0);
 
       // Verify asset structure
       result.listedAssets.assets.forEach(asset => {

@@ -9,7 +9,8 @@ export default defineConfig({
       "src/__tests__/integration/**/*.test.ts"
     ],
     exclude: ["node_modules", "dist"],
-    testTimeout: 10000,
+    testTimeout: 60000, // Increased timeout for real API calls
+    hookTimeout: 60000, // Timeout for hooks like beforeAll
   },
   resolve: {
     alias: {
