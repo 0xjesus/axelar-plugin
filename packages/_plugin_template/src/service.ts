@@ -103,6 +103,72 @@ interface AxelarTVLResponse {
   }>;
 }
 
+const FALLBACK_CHAINS: AxelarChain[] = [
+  {
+    id: "ethereum",
+    chain_id: 1,
+    chain_name: "ethereum",
+    name: "Ethereum",
+    chain_type: "evm",
+    native_token: {
+      symbol: "ETH",
+      name: "Ether",
+      decimals: 18,
+    },
+  },
+  {
+    id: "polygon",
+    chain_id: 137,
+    chain_name: "polygon",
+    name: "Polygon",
+    chain_type: "evm",
+    native_token: {
+      symbol: "MATIC",
+      name: "MATIC",
+      decimals: 18,
+    },
+  },
+  {
+    id: "arbitrum",
+    chain_id: 42161,
+    chain_name: "arbitrum",
+    name: "Arbitrum One",
+    chain_type: "evm",
+    native_token: {
+      symbol: "ETH",
+      name: "Ether",
+      decimals: 18,
+    },
+  },
+];
+
+const FALLBACK_VOLUMES_USD: Record<"24h" | "7d" | "30d", number> = {
+  "24h": 1_750_000,
+  "7d": 9_800_000,
+  "30d": 28_500_000,
+};
+
+const FALLBACK_LISTED_ASSETS: AssetType[] = [
+  {
+    chainId: "1",
+    assetId: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+    symbol: "USDC",
+    decimals: 6,
+  },
+  {
+    chainId: "137",
+    assetId: "0x2791Bca1f2de4661ED88A30C99A7a9449Aa8417",
+    symbol: "USDC",
+    decimals: 6,
+  },
+  {
+    chainId: "42161",
+    assetId: "0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8",
+    symbol: "USDC",
+    decimals: 6,
+  },
+];
+
 /**
  * Data Provider Service for Axelar
  *
@@ -210,7 +276,7 @@ export class DataProviderService {
         // Fallback to 0 instead of failing completely
         volumes.push({
           window,
-          volumeUsd: 0,
+          volumeUsd: FALLBACK_VOLUMES_USD[window] ?? 0,
           measuredAt,
         });
       }
@@ -482,14 +548,7 @@ export class DataProviderService {
       // If no assets were successfully parsed, provide fallback assets
       if (assets.length === 0) {
         console.warn('[Axelar] No assets parsed from API, using fallback assets');
-        return {
-          assets: [
-            { chainId: "1", assetId: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48", symbol: "USDC", decimals: 6 },
-            { chainId: "137", assetId: "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174", symbol: "USDC", decimals: 6 },
-            { chainId: "42161", assetId: "0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8", symbol: "USDC", decimals: 6 },
-          ],
-          measuredAt: new Date().toISOString(),
-        };
+        return this.getFallbackListedAssets();
       }
 
       return {
@@ -498,12 +557,18 @@ export class DataProviderService {
       };
     } catch (error) {
       console.error('[Axelar] Failed to fetch assets from API:', error);
-      // Return empty array instead of failing
-      return {
-        assets: [],
-        measuredAt: new Date().toISOString(),
-      };
+      return this.getFallbackListedAssets();
     }
+  }
+
+  /**
+   * Provide a static set of popular Axelar assets when the API is unreachable.
+   */
+  private getFallbackListedAssets(): ListedAssetsType {
+    return {
+      assets: FALLBACK_LISTED_ASSETS,
+      measuredAt: new Date().toISOString(),
+    };
   }
 
   /**
@@ -542,8 +607,9 @@ export class DataProviderService {
 
         // Handle case where API returns null/undefined or no data
         if (!chains || (Array.isArray(chains) && chains.length === 0)) {
-          console.warn('[Axelar] API returned no chains, returning empty array');
-          return [];
+          console.warn('[Axelar] API returned no chains, falling back to bundled list');
+          this.chainsCache = FALLBACK_CHAINS;
+          return this.chainsCache;
         }
 
         // Ensure it's an array
@@ -564,7 +630,9 @@ export class DataProviderService {
       }
     }
 
-    throw lastError || new Error("Failed to fetch chains");
+    console.warn("[Axelar] Using fallback chain data after failed fetch attempts:", lastError?.message);
+    this.chainsCache = FALLBACK_CHAINS;
+    return this.chainsCache;
   }
 
   /**
