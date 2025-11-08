@@ -19,7 +19,7 @@ const runtime = createPluginRuntime<AppBindings>({
 
 export const { router: dataProviderRouter } = await runtime.usePlugin("@every-plugin/template", {
   variables: {
-    baseUrl: process.env.DATA_PROVIDER_BASE_URL || "https://api.example.com",
+    baseUrl: process.env.DATA_PROVIDER_BASE_URL || "https://api.axelarscan.io/api",
     timeout: Number(process.env.DATA_PROVIDER_TIMEOUT) || 10000,
   },
   secrets: { apiKey: "{{DATA_PROVIDER_API_KEY}}" },
